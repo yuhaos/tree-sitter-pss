@@ -23,17 +23,17 @@ const rules = {
   source_file: $ => repeat($.portable_stimulus_description),
 
   portable_stimulus_description: $ => choice(
-    $.package_body_item,
-    /* $.package_declaration, Already included */
-    /* $.component_declaration Already included */
+    $.package_declaration, // Already included */
+    $.component_declaration, // Already included */
+    $.package_body_item
   ),
 
   // B.1 Package declarations
 
-  package_declaration: $ => seq(
+  package_declaration: $ => prec(2, seq(
     'package', $.package_id_path,
     '{', repeat($.package_body_item), '}'
-  ),
+  )),
 
   package_id_path: $ => seq(
     $.id, // package_identifier
@@ -119,11 +119,11 @@ const rules = {
     $.action_field_declaration,
     $.symbol_declaration,
     $.covergroup_declaration,
-    // $.exec_block_stmt,
+    $.exec_block_stmt,
     $.activity_scheduling_constraint,
     $.attr_group,
     $.compile_assert_stmt,
-    // $.covergroup_instantiation,
+    $.covergroup_instantiation,
     $.action_body_compile_if,
     ';' // stmt_terminator
   ),
@@ -160,6 +160,7 @@ const rules = {
     ';'
   ),
 
+  // confirmed: these xx_type_identifier are all set to type_identifier at last
   /*
   flow_object_type: $ => choice(
     $.buffer_type_identifier,
@@ -230,7 +231,7 @@ const rules = {
     $.constraint_declaration,
     $.attr_field,
     $.typedef_declaration,
-    // $.exec_block_stmt,
+    $.exec_block_stmt,
     $.attr_group,
     $.compile_assert_stmt,
     $.covergroup_declaration,
@@ -288,17 +289,19 @@ const rules = {
   // B.5 Functions
 
   procedural_function: $ => seq(
+    optional(seq('(', '*', 'task', '*', ')')),
     optional($.platform_qualifier),
     optional('pure'),
     optional('static'),
     'function',
     $.function_prototype,
     '{',
-    // repeat($.procedural_stmt),
+    repeat($.procedural_stmt),
     '}'
   ),
 
   function_decl: $ => seq(
+    optional('target'),
     optional('pure'),
     optional('static'),
     'function',
@@ -375,6 +378,7 @@ const rules = {
   ),
 
   target_template_function: $ => seq(
+    optional(seq('(', '*', 'task', '*', ')')),
     'target',
     $.id, // language_identifier,
     optional('static'),
@@ -495,9 +499,21 @@ const rules = {
     $.procedural_stmt
   ),
 
-  procedural_if_else_stmt: $ => seq(
-    'if', '(', $.expression, ')', $.procedural_stmt,
-    optseq('else', $.procedural_stmt)
+  // Unresolved conflict for symbol sequence:
+  // 'function'  function_prototype  '{'  'if'  '('  expression  ')'  'if'  '('  expression  ')'  procedural_stmt  •  'else'  …
+
+  // Possible interpretations:
+  // 1:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_if_else_stmt  'if'  '('  expression  ')'  procedural_stmt  •  'else'  procedural_stmt)
+  // 2:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_if_else_stmt  'if'  '('  expression  ')'  procedural_stmt)  •  'else'  …
+
+  // Possible resolutions:
+  // 1:  Specify a left or right associativity in `procedural_if_else_stmt`
+  // 2:  Add a conflict for these rules: `procedural_if_else_stmt`
+  procedural_if_else_stmt: $ => // prec.left(2,
+    seq(
+      'if', '(', $.expression, ')', $.procedural_stmt,
+      optseq('else', $.procedural_stmt)
+    // )
   ),
 
   procedural_match_stmt: $ => seq(
@@ -529,10 +545,7 @@ const rules = {
     $.hierarchical_id, repseq(',', $.hierarchical_id)
   ),
 
-  procedural_randomization_term: $ => choice(
-    // seq('with', $.constraint_set),
-    ';'
-  ),
+  procedural_randomization_term: $ => ';',
 
   procedural_yield_stmt: $ => seq('yield', ';'), // 3.0
 
@@ -543,7 +556,7 @@ const rules = {
     'component',
     $.id, // component_identifier
     optional($.template_param_decl_list),
-    // optional($.component_super_spec),
+    optional($.component_super_spec),
     '{', repeat($.component_body_item), '}'
   ),
 
@@ -556,7 +569,7 @@ const rules = {
     $.action_declaration,
     $.abstract_action_declaration,
     $.object_bind_stmt,
-    // $.exec_block,
+    $.exec_block,
     $.struct_declaration,
     $.enum_declaration,
     $.covergroup_declaration,
@@ -607,7 +620,7 @@ const rules = {
   ),
 
   object_bind_item_path: $ => seq(
-    // repseq($.component_path_elem, '.'),
+    repseq($.component_path_elem, '.'),
     $.object_bind_item
   ),
 
@@ -645,10 +658,10 @@ const rules = {
       $.labeled_activity_stmt
     ),
     $.activity_action_traversal_stmt,
-    // $.activity_data_field,
+    $.activity_data_field,
     $.activity_bind_stmt,
     $.action_handle_declaration,
-    // $.activity_constraint_stmt,
+    $.activity_constraint_stmt,
     $.activity_scheduling_constraint,
     ';' // stmt_terminator
   ),
@@ -684,10 +697,7 @@ const rules = {
     )
   ),
 
-  inline_constraints_or_empty: $ => choice(
-    // seq('with', $.constraint_set),
-    ';'
-  ),
+  // inline_constraints_or_empty: $ => ';',
 
   activity_sequence_block_stmt: $ => seq(
     optional('sequence'), '{', repeat($.activity_stmt), '}'
@@ -819,7 +829,7 @@ const rules = {
     seq('{', $.hierarchical_id_list, '}')
   ),
 
-  // activity_constraint_stmt: $ => seq($.constraint, $.constraint_set),
+  activity_constraint_stmt: $ => seq("constraint", $.constraint_set),
 
   symbol_declaration: $ => seq(
     'symbol',
@@ -937,7 +947,7 @@ const rules = {
     $.covergroup_declaration,
     $.attr_group,
     $.compile_assert_stmt,
-    // $.covergroup_instantiation,
+    $.covergroup_instantiation,
     $.monitor_body_compile_if,
     ';' // stmt_terminator
   ),
@@ -945,7 +955,7 @@ const rules = {
   monitor_field_declaration: $ => choice(
     $.const_field_declaration,
     $.action_handle_declaration,
-    // $.monitor_handle_declaration
+    $.monitor_handle_declaration
   ),
 
   monitor_activity_declaration: $ => seq(
@@ -961,9 +971,9 @@ const rules = {
       $.labeled_monitor_activity_stmt
     ),
     $.activity_action_traversal_stmt,
-    // $.monitor_activity_monitor_traversal_stmt,
+    $.monitor_activity_monitor_traversal_stmt,
     $.action_handle_declaration,
-    // $.monitor_handle_declaration,
+    $.monitor_handle_declaration,
     $.monitor_activity_constraint_stmt,
     ';' // stmt_terminator
   ),
@@ -976,6 +986,7 @@ const rules = {
     $.monitor_activity_schedule_stmt
   ),
 
+  // already defined before
   // activity_action_traversal_stmt: $ => choice(
   //   seq(
   //     $.id, // identifier
@@ -993,10 +1004,10 @@ const rules = {
   //   )
   // ),
 
-  // inline_constraints_or_empty: $ => choice(
-  //   seq('with', $.constraint_set),
-  //   ';'
-  // ),
+  inline_constraints_or_empty: $ => choice(
+    seq('with', $.constraint_set),
+    ';'
+  ),
 
   monitor_handle_declaration: $ => seq(
     $.type_identifier, // monitor_type_identifier
@@ -1088,11 +1099,11 @@ const rules = {
   monitor_constraint_body_item: $ => choice(
     $.expression_constraint_item,
     $.foreach_constraint_item,
-    // $.forall_constraint_item,
+    $.forall_constraint_item,
     $.if_constraint_item,
     $.implication_constraint_item,
     $.unique_constraint_item,
-    // $.constraint_compile_if,
+    // $.constraint_compile_if, // this is not define now
     ';' // stmt_terminator
   ),
 
@@ -1157,26 +1168,26 @@ const rules = {
     '>'
   ),
 
-  template_param_value: $ => choice(
-    // $.expression, // constant_expression
+  template_param_value: $ => prec.left(1,choice(
+    $.expression, // constant_expression
     $.data_type
-  ),
+  )),
 
   // B.14 Data types
 
   data_type: $ => choice(
     $.scalar_data_type,
-    // $.collection_type,
+    $.collection_type,
     $.reference_type,
-    // $.type_identifier
+    $.type_identifier
   ),
 
   scalar_data_type: $ => choice(
     $.chandle_type,
-    // $.integer_type,
+    $.integer_type,
     $.string_type,
     $.bool_type,
-    // $.enum_type
+    $.enum_type
   ),
 
   casting_type: $ => choice(
@@ -1188,7 +1199,7 @@ const rules = {
 
   chandle_type: $ => 'chandle',
 
-  integer_type: $ => seq(
+  integer_type: $ => prec.left(1, seq(
     $.integer_atom_type,
     optseq(
       '[',
@@ -1196,7 +1207,7 @@ const rules = {
       optseq(':', '0')
     ),
     optseq('in', '[', $.domain_open_range_list, ']')
-  ),
+  )),
 
   integer_atom_type: $ => choice('int', 'bit'),
 
@@ -1306,7 +1317,7 @@ const rules = {
   constraint_body_item: $ => choice(
     $.expression_constraint_item,
     $.foreach_constraint_item,
-    // $.forall_constraint_item,
+    $.forall_constraint_item,
     $.if_constraint_item,
     $.implication_constraint_item,
     $.unique_constraint_item,
@@ -1315,7 +1326,7 @@ const rules = {
     ),
     seq('default', 'disable', $.hierarchical_id, ';'),
     $.dist_directive,
-    // $.constraint_body_compile_if,
+    $.constraint_body_compile_if,
     ';' // stmt_terminator
   ),
 
@@ -1359,7 +1370,7 @@ const rules = {
 
   dist_list: $ => seq($.dist_item, repseq(',', $.dist_item)),
 
-  dist_item: $ => seq($.open_range_value, optional($.dist_weight)),
+  dist_item: $ => prec.left(1, seq($.open_range_value, optional($.dist_weight))),
 
   dist_weight: $ => choice(
     seq(':=', $.expression),
@@ -1524,8 +1535,32 @@ const rules = {
   action_body_compile_if:          $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.action_body_compile_if_item,     optseq('else', $.action_body_compile_if_item)),
   component_body_compile_if:       $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.component_body_compile_if_item,  optseq('else', $.component_body_compile_if_item)),
   struct_body_compile_if:          $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.struct_body_compile_if_item,     optseq('else', $.struct_body_compile_if_item)),
-  procedural_compile_if:           $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.procedural_compile_if_stmt,      optseq('else', $.procedural_compile_if_stmt)),
-  constraint_body_compile_if:      $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.constraint_body_compile_if_item, optseq('else', $.constraint_body_compile_if_item)),
+
+  // Unresolved conflict for symbol sequence:
+  // 'function'  function_prototype  '{'  'if'  '('  expression  ')'  'compile'  'if'  '('  expression  ')'  procedural_compile_if_stmt  •  'else'  …
+
+  // Possible interpretations:
+
+  // 1:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_compile_if  'compile'  'if'  '('  expression  ')'  procedural_compile_if_stmt  •  'else'  procedural_compile_if_stmt)
+  // 2:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_compile_if  'compile'  'if'  '('  expression  ')'  procedural_compile_if_stmt)  •  'else'  …
+
+  // Possible resolutions:
+  // 1:  Specify a left or right associativity in `procedural_compile_if`
+  // 2:  Add a conflict for these rules: `procedural_compile_if`
+  procedural_compile_if:           $ => prec.left(2,
+    seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.procedural_compile_if_stmt,      optseq('else', $.procedural_compile_if_stmt))
+  ),
+  // Unresolved conflict for symbol sequence:
+  // struct_kind  id  '{'  'constraint'  'if'  '('  expression  ')'  'compile'  'if'  '('  expression  ')'  constraint_body_compile_if_item  •  'else'  …
+
+  // Possible interpretations:
+  // 1:  struct_kind  id  '{'  'constraint'  'if'  '('  expression  ')'  (constraint_body_compile_if  'compile'  'if'  '('  expression  ')'  constraint_body_compile_if_item  •  'else'  constraint_body_compile_if_item)
+  // 2:  struct_kind  id  '{'  'constraint'  'if'  '('  expression  ')'  (constraint_body_compile_if  'compile'  'if'  '('  expression  ')'  constraint_body_compile_if_item)  •  'else'  …
+
+  // Possible resolutions:
+  // 1:  Specify a left or right associativity in `constraint_body_compile_if`
+  // 2:  Add a conflict for these rules: `constraint_body_compile_if`
+  constraint_body_compile_if:      $ => prec.left(2, seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.constraint_body_compile_if_item, optseq('else', $.constraint_body_compile_if_item))),
   covergroup_body_compile_if:      $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.covergroup_body_compile_if_item, optseq('else', $.covergroup_body_compile_if_item)),
   override_compile_if:             $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.override_compile_if_stmt,        optseq('else', $.override_compile_if_stmt)),
   package_body_compile_if_item:    $ => seq('{', repeat($.package_body_item),    '}'),
@@ -1549,7 +1584,7 @@ const rules = {
     seq($.unary_operator, $.primary),
     prec.left(seq($.expression, $.binary_operator, $.expression)),
     $.conditional_expression,
-    // $.in_expression
+    $.in_expression
   ),
 
   unary_operator: $ => choice('-', '~', '&', '|', '^'),
@@ -1570,14 +1605,14 @@ const rules = {
     $.expression
   )),
 
-  in_expression: $ => choice(
+  in_expression: $ => prec.left(1, choice(
     seq($.expression, 'in', '[', $.open_range_list, ']'),
     seq(
       $.expression,
       'in',
       $.expression // collection_expression
     )
-  ),
+  )),
 
   open_range_list: $ => seq(
     $.open_range_value, repseq(',', $.open_range_value)
@@ -1591,13 +1626,13 @@ const rules = {
 
   primary: $ => choice(
     $.number,
-    // $.ref_path,
+    $.ref_path,
     $.aggregate_literal,
     $.bool_literal,
     $.string_literal,
     $.null_ref,
     $.paren_expr,
-    // $.cast_expression,
+    $.cast_expression,
     $.compile_has_expr
   ),
 
@@ -1610,12 +1645,28 @@ const rules = {
     $.expression
   ),
 
-  ref_path: $ => choice(
-    seq($.static_ref_path, optseq('.', $.hierarchical_id), optional($.bit_slice)),
-    seq(optseq('super', '.'), $.hierarchical_id, optional($.bit_slice))
+  // Unresolved conflict for symbol sequence:
+  // 'function'  function_prototype  '{'  'foreach'  '('  static_ref_path  •  '['  …
+
+  // Possible interpretations:
+  // 1:  'function'  function_prototype  '{'  'foreach'  '('  (ref_path  static_ref_path  •  bit_slice)
+  // 2:  'function'  function_prototype  '{'  'foreach'  '('  (ref_path  static_ref_path)  •  '['  …
+
+  // Possible resolutions:
+  // 1:  Specify a left or right associativity in `ref_path`
+  // 2:  Add a conflict for these rules: `ref_path`
+  ref_path: $ => prec.left(2,
+    choice(
+      seq($.static_ref_path, optseq('.', $.hierarchical_id), optional($.bit_slice)),
+      seq(optseq('super', '.'), $.hierarchical_id, optional($.bit_slice))
+    )
   ),
 
-  static_ref_path: $ => seq(optional('::'), repseq($.type_identifier_elem, '::'), $.member_path_elem),
+  static_ref_path: $ => seq(
+    optional('::'),
+    repseq($.type_identifier_elem, '::'),
+    $.member_path_elem
+  ),
 
   bit_slice: $ => seq(
     '[',
@@ -1664,17 +1715,29 @@ const rules = {
     repseq('.', $.member_path_elem)
   ),
 
-  member_path_elem: $ => seq(
-    $.id, // identifier
-    optional($.function_parameter_list),
-    repseq('[', $.expression, ']')
+  // Unresolved conflict for symbol sequence:
+  // 'function'  function_prototype  '{'  id  •  '['  …
+  //
+  // Possible interpretations:
+  // 1:  'function'  function_prototype  '{'  (member_path_elem  id  •  member_path_elem_repeat1)
+  // 2:  'function'  function_prototype  '{'  (member_path_elem  id)  •  '['  …
+  //
+  // Possible resolutions:
+  // 1:  Specify a left or right associativity in `member_path_elem`
+  // 2:  Add a conflict for these rules: `member_path_elem`
+  member_path_elem: $ => prec.left(2,
+    seq(
+      $.id, // identifier
+      optional($.function_parameter_list),
+      repseq('[', $.expression, ']')
+    )
   ),
 
-  type_identifier: $ => seq(
+  type_identifier: $ => prec.left(1, seq(
     optional('::'),
     $.type_identifier_elem,
     repseq('::', $.type_identifier_elem)
-  ),
+  )),
 
   type_identifier_elem: $ => seq(
     $.id, // identifier
@@ -1753,7 +1816,7 @@ const rules = {
 
   string_literal: $ => choice(
     $.QUOTED_STRING,
-    // $.TRIPLE_QUOTED_STRING
+    $.TRIPLE_QUOTED_STRING
   ),
 
   QUOTED_STRING: $ => seq(
@@ -1765,7 +1828,15 @@ const rules = {
     '"'
   ),
 
-  // TRIPLE_QUOTED_STRING: $ =>
+  TRIPLE_QUOTED_STRING: $ => seq(
+    '"""',
+    repeat(choice(
+      token.immediate(prec(1, /[^"]+/)),
+      token(prec(1, seq('"', /[^"]/))),
+      token(prec(1, seq('""', /[^"]/))),
+    )),
+    '"""'
+  ),
 
 };
 
@@ -1775,9 +1846,262 @@ module.exports = grammar({
   rules: rules,
   extras: $ => [
     /\s|\\\r?\n/,
-    $.comment
+    $.comment,
     // $.template
-  ]
+  ],
+
+  conflicts: $ => [
+    // [$.action_body_item, $.exec_block_stmt],
+    // [$.covergroup_type_instantiation, $.type_identifier_elem],
+    // [$.member_path_elem],
+
+    // Unresolved conflict for symbol sequence:
+    // 'function'  function_prototype  '{'  member_path_elem  •  '.'  …
+
+    // Possible interpretations:
+    // 1:  'function'  function_prototype  '{'  (function_ref_path_repeat1  member_path_elem  •  '.')            (precedence: 0, associativity: Left)
+    // 2:  'function'  function_prototype  '{'  (hierarchical_id  member_path_elem  •  hierarchical_id_repeat1)
+    // 3:  'function'  function_prototype  '{'  (static_ref_path  member_path_elem)  •  '.'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `hierarchical_id` and `function_ref_path_repeat1` than in the other rules.
+    // 2:  Specify a higher precedence in `static_ref_path` than in the other rules.
+    // 3:  Specify a left or right associativity in `static_ref_path`
+    // 4:  Add a conflict for these rules: `static_ref_path`, `function_ref_path`, `hierarchical_id`
+    [$.hierarchical_id, $.static_ref_path],
+
+    // Unresolved conflict for symbol sequence:
+    // 'function'  function_prototype  '{'  member_path_elem  •  '.'  …
+    // Possible interpretations:
+    // 1:  'function'  function_prototype  '{'  (function_ref_path_repeat1  member_path_elem  •  '.')            (precedence: 0, associativity: Left)
+    // 2:  'function'  function_prototype  '{'  (hierarchical_id  member_path_elem  •  hierarchical_id_repeat1)
+    // 3:  'function'  function_prototype  '{'  (static_ref_path  member_path_elem)  •  '.'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `hierarchical_id` and `function_ref_path_repeat1` than in the other rules.
+    // 2:  Specify a higher precedence in `static_ref_path` than in the other rules.
+    // 3:  Specify a left or right associativity in `static_ref_path`
+    // 4:  Add a conflict for these rules: `static_ref_path`, `function_ref_path`, `hierarchical_id`
+    [$.hierarchical_id, $.static_ref_path, $.function_ref_path],
+
+    // Unresolved conflict for symbol sequence:
+    // struct_kind  id  '{'  ';'  •  '}'  …
+
+    // Possible interpretations:
+    // 1:  struct_kind  id  '{'  (exec_block_stmt  ';')  •  '}'  …
+    // 2:  struct_kind  id  '{'  (struct_body_item  ';')  •  '}'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `struct_body_item` than in the other rules.
+    // 2:  Specify a higher precedence in `exec_block_stmt` than in the other rules.
+    // 3:  Add a conflict for these rules: `struct_body_item`, `exec_block_stmt`
+    [$.struct_body_item, $.exec_block_stmt],
+
+    // Unresolved conflict for symbol sequence:
+    // 'extend'  'action'  type_identifier  '{'  ';'  •  '}'  …
+
+    // Possible interpretations:
+    // 1:  'extend'  'action'  type_identifier  '{'  (action_body_item  ';')  •  '}'  …
+    // 2:  'extend'  'action'  type_identifier  '{'  (exec_block_stmt  ';')  •  '}'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `action_body_item` than in the other rules.
+    // 2:  Specify a higher precedence in `exec_block_stmt` than in the other rules.
+    // 3:  Add a conflict for these rules: `action_body_item`, `exec_block_stmt`
+    [$.action_body_item, $.exec_block_stmt],
+
+    // Unresolved conflict for symbol sequence:
+    // 'extend'  'action'  type_identifier  '{'  ';'  •  '}'  …
+
+    // Possible interpretations:
+    // 1:  'extend'  'action'  type_identifier  '{'  (action_body_item  ';')  •  '}'  …
+    // 2:  'extend'  'action'  type_identifier  '{'  (exec_block_stmt  ';')  •  '}'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `action_body_item` than in the other rules.
+    // 2:  Specify a higher precedence in `exec_block_stmt` than in the other rules.
+    // 3:  Add a conflict for these rules: `action_body_item`, `exec_block_stmt`
+    [$.covergroup_type_instantiation, $.type_identifier_elem],
+
+    // Unresolved conflict for symbol sequence:
+    // 'function'  function_prototype  '{'  '::'  member_path_elem  •  '.'  …
+
+    // Possible interpretations:
+    // 1:  'function'  function_prototype  '{'  '::'  (function_ref_path_repeat1  member_path_elem  •  '.')  (precedence: 0, associativity: Left)
+    // 2:  'function'  function_prototype  '{'  (static_ref_path  '::'  member_path_elem)  •  '.'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `function_ref_path_repeat1` than in the other rules.
+    // 2:  Specify a higher precedence in `static_ref_path` than in the other rules.
+    // 3:  Specify a left or right associativity in `static_ref_path`
+    // 4:  Add a conflict for these rules: `static_ref_path`, `function_ref_path`
+    [$.static_ref_path, $.function_ref_path],
+
+    // Unresolved conflict for symbol sequence:
+    // 'compile'  'if'  '('  '('  type_identifier  •  ')'  …
+
+    // Possible interpretations:
+    // 1:  'compile'  'if'  '('  '('  (casting_type  type_identifier)  •  ')'  …
+    // 2:  'compile'  'if'  '('  '('  (enum_type  type_identifier)  •  ')'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `casting_type` than in the other rules.
+    // 2:  Specify a higher precedence in `enum_type` than in the other rules.
+    // 3:  Add a conflict for these rules: `casting_type`, `enum_type`
+    [$.casting_type, $.enum_type],
+
+    // Unresolved conflict for symbol sequence:
+    // 'compile'  'if'  '('  '('  type_identifier  •  ')'  …
+
+    // Possible interpretations:
+    // 1:  'compile'  'if'  '('  '('  (casting_type  type_identifier)  •  ')'  …
+    // 2:  'compile'  'if'  '('  '('  (enum_type  type_identifier)  •  ')'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `casting_type` than in the other rules.
+    // 2:  Specify a higher precedence in `enum_type` than in the other rules.
+    // 3:  Add a conflict for these rules: `casting_type`, `enum_type`
+    // [$.component_body_item, $.type_identifier_elem],
+
+    // Unresolved conflict for symbol sequence:
+    // 'compile'  'if'  '('  '('  type_identifier  •  ')'  …
+
+    // Possible interpretations:
+    // 1:  'compile'  'if'  '('  '('  (casting_type  type_identifier)  •  ')'  …
+    // 2:  'compile'  'if'  '('  '('  (enum_type  type_identifier)  •  ')'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `casting_type` than in the other rules.
+    // 2:  Specify a higher precedence in `enum_type` than in the other rules.
+    // 3:  Add a conflict for these rules: `casting_type`, `enum_type`
+    [$.component_path_elem, $.type_identifier_elem],
+
+    // Unresolved conflict for symbol sequence:
+    // 'abstract'  'monitor'  id  '{'  type_identifier  id  •  ';'  …
+
+    // Possible interpretations:
+    // 1:  'abstract'  'monitor'  id  '{'  type_identifier  (action_instantiation  id)  •  ';'  …
+    // 2:  'abstract'  'monitor'  id  '{'  type_identifier  (monitor_instantiation  id)  •  ';'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `action_instantiation` than in the other rules.
+    // 2:  Specify a higher precedence in `monitor_instantiation` than in the other rules.
+    // 3:  Add a conflict for these rules: `action_instantiation`, `monitor_instantiation`
+    [$.action_instantiation, $.monitor_instantiation],
+
+    // Unresolved conflict for symbol sequence:
+    // 'compile'  'if'  '('  '('  casting_type  ')'  expression  •  '*'  …
+
+    // Possible interpretations:
+    // 1:  'compile'  'if'  '('  '('  casting_type  ')'  (expression  expression  •  binary_operator  expression)  (precedence: 0, associativity: Left)
+    // 2:  'compile'  'if'  '('  (cast_expression  '('  casting_type  ')'  expression)  •  '*'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `expression` than in the other rules.
+    // 2:  Specify a higher precedence in `cast_expression` than in the other rules.
+    // 3:  Specify a left or right associativity in `cast_expression`
+    // 4:  Add a conflict for these rules: `expression`, `cast_expression`
+    [$.expression, $.cast_expression],
+
+    // Unresolved conflict for symbol sequence:
+    // 'compile'  'if'  '('  '('  casting_type  ')'  expression  •  '?'  …
+
+    // Possible interpretations:
+    // 1:  'compile'  'if'  '('  '('  casting_type  ')'  (conditional_expression  expression  •  '?'  expression  ':'  expression)  (precedence: 0, associativity: Left)
+    // 2:  'compile'  'if'  '('  (cast_expression  '('  casting_type  ')'  expression)  •  '?'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `conditional_expression` than in the other rules.
+    // 2:  Specify a higher precedence in `cast_expression` than in the other rules.
+    // 3:  Specify a left or right associativity in `cast_expression`
+    // 4:  Add a conflict for these rules: `conditional_expression`, `cast_expression`
+    [$.conditional_expression, $.cast_expression],
+
+    // Unresolved conflict for symbol sequence:
+    // 'abstract'  'monitor'  id  '{'  'activity'  '{'  id  inline_constraints_or_empty  •  '{'  …
+
+    // Possible interpretations:
+    // 1:  'abstract'  'monitor'  id  '{'  'activity'  '{'  (activity_action_traversal_stmt  id  inline_constraints_or_empty)  •  '{'  …
+    // 2:  'abstract'  'monitor'  id  '{'  'activity'  '{'  (monitor_activity_monitor_traversal_stmt  id  inline_constraints_or_empty)  •  '{'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `activity_action_traversal_stmt` than in the other rules.
+    // 2:  Specify a higher precedence in `monitor_activity_monitor_traversal_stmt` than in the other rules.
+    // 3:  Add a conflict for these rules: `activity_action_traversal_stmt`, `monitor_activity_monitor_traversal_stmt`
+    [$.activity_action_traversal_stmt, $.monitor_activity_monitor_traversal_stmt],
+
+    [$.procedural_if_else_stmt],
+
+    // Unresolved conflict for symbol sequence:
+    // 'const'  'array'  '<'  data_type  ','  expression  '>'  •  id  …
+    //
+    // Possible interpretations:
+    // 1:  'const'  'array'  '<'  data_type  ','  expression  (binary_operator  '>')  •  id  …
+    // 2:  'const'  (collection_type  'array'  '<'  data_type  ','  expression  '>')  •  id  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `binary_operator` than in the other rules.
+    // 2:  Specify a higher precedence in `collection_type` than in the other rules.
+    // 3:  Add a conflict for these rules: `collection_type`, `binary_operator`
+    [$.collection_type, $.binary_operator],
+
+    // Unresolved conflict for symbol sequence:
+    // 'const'  type_identifier  •  id  …
+    //
+    // Possible interpretations:
+    // 1:  'const'  (data_type  type_identifier)  •  id  …
+    // 2:  'const'  (enum_type  type_identifier)  •  id  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `data_type` than in the other rules.
+    // 2:  Specify a higher precedence in `enum_type` than in the other rules.
+    // 3:  Add a conflict for these rules: `data_type`, `enum_type`
+    [$.data_type, $.enum_type],
+
+    // Unresolved conflict for symbol sequence:
+    // 'const'  integer_atom_type  '['  expression  'in'  '['  expression  •  ','  …
+    //
+    // Possible interpretations:
+    // 1:  'const'  integer_atom_type  '['  expression  'in'  '['  (domain_open_range_value  expression)  •  ','  …
+    // 2:  'const'  integer_atom_type  '['  expression  'in'  '['  (open_range_value  expression)  •  ','  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `domain_open_range_value` than in the other rules.
+    // 2:  Specify a higher precedence in `open_range_value` than in the other rules.
+    // 3:  Add a conflict for these rules: `domain_open_range_value`, `open_range_value`
+    [$.domain_open_range_value, $.open_range_value],
+
+    // Unresolved conflict for symbol sequence:
+    // package_declaration  •  'package'  …
+    //
+    // Possible interpretations:
+    // 1:  (package_body_item  package_declaration)  •  'package'  …
+    // 2:  (portable_stimulus_description  package_declaration)  •  'package'  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `portable_stimulus_description` than in the other rules.
+    // 2:  Specify a higher precedence in `package_body_item` than in the other rules.
+    // 3:  Add a conflict for these rules: `portable_stimulus_description`, `package_body_item`
+    [$.portable_stimulus_description, $.package_body_item],
+
+    // Unresolved conflict for symbol sequence:
+    // 'target'  •  'static'  …
+
+    // Possible interpretations:
+    // 1:  (function_decl  'target'  •  'static'  'function'  function_prototype  ';')
+    // 2:  (platform_qualifier  'target')  •  'static'  …
+
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `function_decl` than in the other rules.
+    // 2:  Specify a higher precedence in `platform_qualifier` than in the other rules.
+    // 3:  Specify a left or right associativity in `platform_qualifier`
+    // 4:  Add a conflict for these rules: `function_decl`, `platform_qualifier`
+    [$.function_decl, $.platform_qualifier],
+
+
+    // [$.procedural_if_else_stmt],
+    // [$.procedural_compile_if],
+  ],
 });
 
 /* eslint camelcase: 0 */
