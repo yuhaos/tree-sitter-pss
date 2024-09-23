@@ -5,10 +5,10 @@
   "main": "bindings/node",
   "types": "bindings/node",
   "scripts": {
-    "gen": "tree-sitter generate",
     "install": "node-gyp-build",
-    "test": "tree-sitter test",
-    "prebuildify": "prebuildify --napi --strip"
+    "prestart": "tree-sitter build --wasm",
+    "start": "tree-sitter playground",
+    "test": "node --test bindings/node/*_test.js"
   },
   "repository": {
     "type": "git",

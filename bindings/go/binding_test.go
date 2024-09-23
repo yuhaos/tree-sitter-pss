@@ -3,8 +3,8 @@ package tree_sitter_pss_test
 import (
 	"testing"
 
-	tree_sitter "github.com/smacker/go-tree-sitter"
-	"github.com/tree-sitter/tree-sitter-pss"
+	tree_sitter "github.com/tree-sitter/go-tree-sitter"
+	tree_sitter_pss "github.com/tree-sitter/tree-sitter-pss/bindings/go"
 )
 
 func TestCanLoadGrammar(t *testing.T) {
