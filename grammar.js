@@ -63,6 +63,7 @@ const rules = {
     $.package_declaration,
     $.compile_assert_stmt,
     $.package_body_compile_if,
+    $.SNPS_SHADOWED,
     ';' // stmt_terminator
   ),
 
@@ -125,6 +126,7 @@ const rules = {
     $.compile_assert_stmt,
     $.covergroup_instantiation,
     $.action_body_compile_if,
+    $.SNPS_SHADOWED,
     ';' // stmt_terminator
   ),
 
@@ -229,6 +231,7 @@ const rules = {
 
   struct_body_item: $ => choice(
     $.constraint_declaration,
+    $.data_declaration,
     $.attr_field,
     $.typedef_declaration,
     $.exec_block_stmt,
@@ -237,6 +240,7 @@ const rules = {
     $.covergroup_declaration,
     $.covergroup_instantiation,
     $.struct_body_compile_if,
+    $.SNPS_SHADOWED,
     ';'
   ),
 
@@ -301,7 +305,8 @@ const rules = {
   ),
 
   function_decl: $ => seq(
-    optional('target'),
+    optional(seq('(', '*', 'task', '*', ')')),
+    optional($.platform_qualifier),
     optional('pure'),
     optional('static'),
     'function',
@@ -585,6 +590,7 @@ const rules = {
     $.compile_assert_stmt,
     $.attr_group,
     $.component_body_compile_if,
+    $.SNPS_SHADOWED,
     ';' // stmt_terminator
   ),
 
@@ -949,6 +955,7 @@ const rules = {
     $.compile_assert_stmt,
     $.covergroup_instantiation,
     $.monitor_body_compile_if,
+    $.SNPS_SHADOWED,
     ';' // stmt_terminator
   ),
 
@@ -1327,6 +1334,7 @@ const rules = {
     seq('default', 'disable', $.hierarchical_id, ';'),
     $.dist_directive,
     $.constraint_body_compile_if,
+    $.SNPS_SHADOWED,
     ';' // stmt_terminator
   ),
 
@@ -1394,6 +1402,7 @@ const rules = {
     $.covergroup_coverpoint,
     $.covergroup_cross,
     $.covergroup_body_compile_if,
+    $.SNPS_SHADOWED,
     ';' // stmt_terminator
   ),
 
@@ -1584,7 +1593,7 @@ const rules = {
     seq($.unary_operator, $.primary),
     prec.left(seq($.expression, $.binary_operator, $.expression)),
     $.conditional_expression,
-    $.in_expression
+    $.in_expression,
   ),
 
   unary_operator: $ => choice('-', '~', '&', '|', '^'),
@@ -1838,6 +1847,13 @@ const rules = {
     '"""'
   ),
 
+  SNPS_SHADOWED: $ => seq(
+    '_snps_shadowed',
+    '{',
+    token.immediate(prec(1, /[^}]+/)),
+    '}'
+  ),
+
 };
 
 module.exports = grammar({
@@ -2083,21 +2099,6 @@ module.exports = grammar({
     // 2:  Specify a higher precedence in `package_body_item` than in the other rules.
     // 3:  Add a conflict for these rules: `portable_stimulus_description`, `package_body_item`
     [$.portable_stimulus_description, $.package_body_item],
-
-    // Unresolved conflict for symbol sequence:
-    // 'target'  •  'static'  …
-
-    // Possible interpretations:
-    // 1:  (function_decl  'target'  •  'static'  'function'  function_prototype  ';')
-    // 2:  (platform_qualifier  'target')  •  'static'  …
-
-    // Possible resolutions:
-    // 1:  Specify a higher precedence in `function_decl` than in the other rules.
-    // 2:  Specify a higher precedence in `platform_qualifier` than in the other rules.
-    // 3:  Specify a left or right associativity in `platform_qualifier`
-    // 4:  Add a conflict for these rules: `function_decl`, `platform_qualifier`
-    [$.function_decl, $.platform_qualifier],
-
 
     // [$.procedural_if_else_stmt],
     // [$.procedural_compile_if],

@@ -5,6 +5,11 @@
     "fields": {}
   },
   {
+    "type": "SNPS_SHADOWED",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "TRIPLE_QUOTED_STRING",
     "named": true,
     "fields": {}
@@ -86,6 +91,10 @@
       "multiple": false,
       "required": false,
       "types": [
+        {
+          "type": "SNPS_SHADOWED",
+          "named": true
+        },
         {
           "type": "action_body_compile_if",
           "named": true
@@ -965,6 +974,10 @@
       "required": false,
       "types": [
         {
+          "type": "SNPS_SHADOWED",
+          "named": true
+        },
+        {
           "type": "abstract_action_declaration",
           "named": true
         },
@@ -1246,6 +1259,10 @@
       "required": false,
       "types": [
         {
+          "type": "SNPS_SHADOWED",
+          "named": true
+        },
+        {
           "type": "constraint_body_compile_if",
           "named": true
         },
@@ -1372,6 +1389,10 @@
       "multiple": false,
       "required": false,
       "types": [
+        {
+          "type": "SNPS_SHADOWED",
+          "named": true
+        },
         {
           "type": "covergroup_body_compile_if",
           "named": true
@@ -2196,11 +2217,15 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": true,
       "types": [
         {
           "type": "function_prototype",
+          "named": true
+        },
+        {
+          "type": "platform_qualifier",
           "named": true
         }
       ]
@@ -2995,6 +3020,10 @@
       "required": false,
       "types": [
         {
+          "type": "SNPS_SHADOWED",
+          "named": true
+        },
+        {
           "type": "attr_group",
           "named": true
         },
@@ -3510,6 +3539,10 @@
       "multiple": false,
       "required": false,
       "types": [
+        {
+          "type": "SNPS_SHADOWED",
+          "named": true
+        },
         {
           "type": "abstract_action_declaration",
           "named": true
@@ -4375,6 +4408,10 @@
       "required": false,
       "types": [
         {
+          "type": "SNPS_SHADOWED",
+          "named": true
+        },
+        {
           "type": "attr_field",
           "named": true
         },
@@ -4396,6 +4433,10 @@
         },
         {
           "type": "covergroup_instantiation",
+          "named": true
+        },
+        {
+          "type": "data_declaration",
           "named": true
         },
         {
@@ -5035,6 +5076,10 @@
   },
   {
     "type": "^",
+    "named": false
+  },
+  {
+    "type": "_snps_shadowed",
     "named": false
   },
   {

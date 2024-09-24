@@ -172,6 +172,10 @@
           "name": "package_body_compile_if"
         },
         {
+          "type": "SYMBOL",
+          "name": "SNPS_SHADOWED"
+        },
+        {
           "type": "STRING",
           "value": ";"
         }
@@ -565,6 +569,10 @@
         {
           "type": "SYMBOL",
           "name": "action_body_compile_if"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "SNPS_SHADOWED"
         },
         {
           "type": "STRING",
@@ -990,6 +998,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "data_declaration"
+        },
+        {
+          "type": "SYMBOL",
           "name": "attr_field"
         },
         {
@@ -1019,6 +1031,10 @@
         {
           "type": "SYMBOL",
           "name": "struct_body_compile_if"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "SNPS_SHADOWED"
         },
         {
           "type": "STRING",
@@ -1311,8 +1327,41 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "STRING",
-              "value": "target"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "("
+                },
+                {
+                  "type": "STRING",
+                  "value": "*"
+                },
+                {
+                  "type": "STRING",
+                  "value": "task"
+                },
+                {
+                  "type": "STRING",
+                  "value": "*"
+                },
+                {
+                  "type": "STRING",
+                  "value": ")"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "platform_qualifier"
             },
             {
               "type": "BLANK"
@@ -2807,6 +2856,10 @@
         {
           "type": "SYMBOL",
           "name": "component_body_compile_if"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "SNPS_SHADOWED"
         },
         {
           "type": "STRING",
@@ -4716,6 +4769,10 @@
           "name": "monitor_body_compile_if"
         },
         {
+          "type": "SYMBOL",
+          "name": "SNPS_SHADOWED"
+        },
+        {
           "type": "STRING",
           "value": ";"
         }
@@ -6423,6 +6480,10 @@
           "name": "constraint_body_compile_if"
         },
         {
+          "type": "SYMBOL",
+          "name": "SNPS_SHADOWED"
+        },
+        {
           "type": "STRING",
           "value": ";"
         }
@@ -6883,6 +6944,10 @@
         {
           "type": "SYMBOL",
           "name": "covergroup_body_compile_if"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "SNPS_SHADOWED"
         },
         {
           "type": "STRING",
@@ -9692,6 +9757,34 @@
           "value": "\"\"\""
         }
       ]
+    },
+    "SNPS_SHADOWED": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "_snps_shadowed"
+        },
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "IMMEDIATE_TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": 1,
+            "content": {
+              "type": "PATTERN",
+              "value": "[^}]+"
+            }
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
     }
   },
   "extras": [
@@ -9772,10 +9865,6 @@
     [
       "portable_stimulus_description",
       "package_body_item"
-    ],
-    [
-      "function_decl",
-      "platform_qualifier"
     ]
   ],
   "precedences": [],
