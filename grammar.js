@@ -5,7 +5,7 @@ function optseq() {
 }
 
 function repseq() {
-  return repeat(prec.left(seq.apply(null, arguments)));
+  return optional(repeat(prec.left(seq.apply(null, arguments))));
 }
 
 function sep1(separator, rule) {
@@ -51,9 +51,9 @@ const rules = {
     $.covergroup_declaration,
     $.function_decl,
     $.import_class_decl,
-    $.procedural_function,
+    $.procedural_function_task,
     $.import_function,
-    $.target_template_function,
+    $.target_template_function_task,
     $.export_action,
     $.typedef_declaration,
     $.import_stmt,
@@ -291,9 +291,12 @@ const rules = {
   ),
 
   // B.5 Functions
+  procedural_function_task: $ => seq(
+    optional(seq('(', '*', 'task', '*', ')')),
+    $.procedural_function
+  ),
 
   procedural_function: $ => seq(
-    optional(seq('(', '*', 'task', '*', ')')),
     optional($.platform_qualifier),
     optional('pure'),
     optional('static'),
@@ -328,8 +331,10 @@ const rules = {
   ),
 
   function_parameter_list_prototype: $ => choice(
-    seq('(', optseq($.function_parameter, repseq(',', $.function_parameter)), ')'),
-    seq('(', repseq($.function_parameter, ','), $.varargs_parameter, ')')
+    seq('(', optseq($.function_parameter, repseq(',', $.function_parameter)), ')')
+    // TODO: this line could cause issues in function parameter if more than one parameter exist
+    // comment it currently
+    // seq('(', repseq($.function_parameter, ','), $.varargs_parameter, ')')
   ),
 
   function_parameter: $ => choice(
@@ -382,8 +387,12 @@ const rules = {
     )
   ),
 
-  target_template_function: $ => seq(
+  target_template_function_task: $ => seq(
     optional(seq('(', '*', 'task', '*', ')')),
+    $.target_template_function
+  ),
+
+  target_template_function: $ => seq(
     'target',
     $.id, // language_identifier,
     optional('static'),
@@ -451,7 +460,10 @@ const rules = {
   procedural_data_instantiation: $ => seq(
     $.id, // identifier
     optional($.array_dim),
-    optseq('=', $.expression)
+    optseq(
+      '=',
+      $.expression
+    )
   ),
 
   procedural_assignment_stmt: $ => seq(
@@ -473,7 +485,7 @@ const rules = {
 
   procedural_repeat_stmt: $ => choice(
     seq(
-      'repeat', '(', optseq(
+      choice('repeat', 'replicate'), '(', optseq(
         $.id, // identifier
         ':'
       ),
@@ -574,15 +586,15 @@ const rules = {
     $.action_declaration,
     $.abstract_action_declaration,
     $.object_bind_stmt,
-    $.exec_block,
+    $.exec_block_stmt,
     $.struct_declaration,
     $.enum_declaration,
     $.covergroup_declaration,
     $.function_decl,
     $.import_class_decl,
-    $.procedural_function,
+    $.procedural_function_task,
     $.import_function,
-    $.target_template_function,
+    $.target_template_function_task,
     $.export_action,
     $.typedef_declaration,
     $.import_stmt,
@@ -879,7 +891,8 @@ const rules = {
   // B.11 Data coverage specification
 
   data_declaration: $ => seq(
-    $.data_type, $.data_instantiation,
+    $.data_type,
+    $.data_instantiation,
     repseq(',', $.data_instantiation),
     ';'
   ),
@@ -1211,7 +1224,8 @@ const rules = {
     optseq(
       '[',
       $.expression, // constant_expression
-      optseq(':', '0')
+      optseq(':', '0'),
+      ']'
     ),
     optseq('in', '[', $.domain_open_range_list, ']')
   )),
@@ -1303,10 +1317,11 @@ const rules = {
   // B.15 Constraints
 
   constraint_declaration: $ => choice(
-    seq('constraint', $.constraint_set),
+    seq('constraint', optional('soft'), $.constraint_set),
     seq(
       optional('dynamic'),
       'constraint',
+      optional('soft'),
       $.id, // identifier
       $.constraint_block
     )
@@ -1318,7 +1333,7 @@ const rules = {
   ),
 
   constraint_block: $ => seq(
-    '{', repeat($.constraint_body_item), '}'
+    '{', repeat(seq(optional('soft'), $.constraint_body_item)), '}'
   ),
 
   constraint_body_item: $ => choice(
@@ -1590,13 +1605,16 @@ const rules = {
 
   expression: $ => choice(
     $.primary,
-    seq($.unary_operator, $.primary),
+    seq(choice($.unary_operator, $.logic_operator), $.primary),
     prec.left(seq($.expression, $.binary_operator, $.expression)),
     $.conditional_expression,
     $.in_expression,
   ),
 
-  unary_operator: $ => choice('-', '~', '&', '|', '^'),
+  unary_operator: $ => choice('-', '~', '&', '|', '^' ),
+
+  // add for if
+  logic_operator: $ => '!',
 
   binary_operator: $ => choice(
     '*', '/', '%', '+', '-', '<<', '>>',
@@ -1627,9 +1645,9 @@ const rules = {
     $.open_range_value, repseq(',', $.open_range_value)
   ),
 
-  open_range_value: $ => seq(
+  open_range_value: $ => prec.left(1, seq(
     $.expression, optseq('..', $.expression)
-  ),
+  )),
 
   // collection_expression: $ => $.expression,
 
@@ -1664,7 +1682,7 @@ const rules = {
   // Possible resolutions:
   // 1:  Specify a left or right associativity in `ref_path`
   // 2:  Add a conflict for these rules: `ref_path`
-  ref_path: $ => prec.left(2,
+  ref_path: $ => prec.left(1,
     choice(
       seq($.static_ref_path, optseq('.', $.hierarchical_id), optional($.bit_slice)),
       seq(optseq('super', '.'), $.hierarchical_id, optional($.bit_slice))
@@ -1724,28 +1742,16 @@ const rules = {
     repseq('.', $.member_path_elem)
   ),
 
-  // Unresolved conflict for symbol sequence:
-  // 'function'  function_prototype  '{'  id  •  '['  …
-  //
-  // Possible interpretations:
-  // 1:  'function'  function_prototype  '{'  (member_path_elem  id  •  member_path_elem_repeat1)
-  // 2:  'function'  function_prototype  '{'  (member_path_elem  id)  •  '['  …
-  //
-  // Possible resolutions:
-  // 1:  Specify a left or right associativity in `member_path_elem`
-  // 2:  Add a conflict for these rules: `member_path_elem`
-  member_path_elem: $ => prec.left(2,
-    seq(
+  member_path_elem: $ => seq(
       $.id, // identifier
       optional($.function_parameter_list),
       repseq('[', $.expression, ']')
-    )
   ),
 
   type_identifier: $ => prec.left(1, seq(
     optional('::'),
-    $.type_identifier_elem,
-    repseq('::', $.type_identifier_elem)
+    repseq($.type_identifier_elem, '::'),
+    $.type_identifier_elem
   )),
 
   type_identifier_elem: $ => seq(
@@ -1755,20 +1761,20 @@ const rules = {
 
   // B.20 Numbers and literals
 
-  number: $ => choice(
+  number: $ => prec.left(1, choice(
     $.integer_number,
     $.floating_point_number
-  ),
+  )),
 
   integer_number: $ => token(choice(
     /0[bB][01][01_]*/,  // bin_number
     /0[0-7_]*/,         // oct_number
-    /[1-9][0-9]*/,      // dec_number
+    /[1-9][0-9_]*/,      // dec_number
     /0[xX][0-9a-fA-F][0-9a-fA-F_]*/, // hex_number
-    /([1-9][0-9]*)?'([sS]b)|(B)[01][01_]*/, // based_bin_number
-    /([1-9][0-9]*)?'([sS]o)|(O)[01][01_]*/, // based_oct_number
-    /([1-9][0-9]*)?'([sS]d)|(D)[01][01_]*/, // based_dec_number
-    /([1-9][0-9]*)?'([sS]h)|(H)[01][01_]*/  // based_hex_number
+    /[0-9]*'[sS]?[bB][01_]+/, // based_bin_number
+    /[0-9]*'[sS]?[oO][0-7_]+/, // based_oct_number
+    /[0-9]*'[sS]?[dD][0-9_]+/, // based_dec_number
+    /[0-9]*'[sS]?[hH][0-9a-fA-F_]*/  // based_hex_number
   )),
 
   floating_point_number: $ => token(choice(
@@ -1830,21 +1836,29 @@ const rules = {
 
   QUOTED_STRING: $ => seq(
     '"',
-    repeat(choice(
+    optional($.QUOTED_STRING_ITEM),
+    '"'
+  ),
+
+  QUOTED_STRING_ITEM: $ => seq(
+    repeat1(choice(
       token.immediate(/[^\\"]+/),
       token.immediate(seq('\\', /./))
-    )),
-    '"'
+    ))
   ),
 
   TRIPLE_QUOTED_STRING: $ => seq(
     '"""',
-    repeat(choice(
+    optional($.TRIPLE_QUOTED_STRING_ITEM),
+    '"""'
+  ),
+
+  TRIPLE_QUOTED_STRING_ITEM: $ => seq(
+    repeat1(choice(
       token.immediate(prec(1, /[^"]+/)),
       token(prec(1, seq('"', /[^"]/))),
       token(prec(1, seq('""', /[^"]/))),
-    )),
-    '"""'
+    ))
   ),
 
   SNPS_SHADOWED: $ => seq(
@@ -1866,11 +1880,8 @@ module.exports = grammar({
     // $.template
   ],
 
+  // resolve using conflicts insteand of prec, prec might cause issues
   conflicts: $ => [
-    // [$.action_body_item, $.exec_block_stmt],
-    // [$.covergroup_type_instantiation, $.type_identifier_elem],
-    // [$.member_path_elem],
-
     // Unresolved conflict for symbol sequence:
     // 'function'  function_prototype  '{'  member_path_elem  •  '.'  …
 
@@ -1926,6 +1937,19 @@ module.exports = grammar({
     // 3:  Add a conflict for these rules: `action_body_item`, `exec_block_stmt`
     [$.action_body_item, $.exec_block_stmt],
 
+    // 'component'  id  '{'  ';'  •  '}'  …
+    // Unresolved conflict for symbol sequence:
+    //
+    // Possible interpretations:
+    // 1:  'component'  id  '{'  (component_body_item  ';')  •  '}'  …
+    // 2:  'component'  id  '{'  (exec_block_stmt  ';')  •  '}'  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `exec_block_stmt` than in the other rules.
+    // 2:  Specify a higher precedence in `component_body_item` than in the other rules.
+    // 3:  Add a conflict for these rules: `exec_block_stmt`, `component_body_item`
+    [$.component_body_item, $.exec_block_stmt],
+
     // Unresolved conflict for symbol sequence:
     // 'extend'  'action'  type_identifier  '{'  ';'  •  '}'  …
 
@@ -1965,19 +1989,6 @@ module.exports = grammar({
     // 2:  Specify a higher precedence in `enum_type` than in the other rules.
     // 3:  Add a conflict for these rules: `casting_type`, `enum_type`
     [$.casting_type, $.enum_type],
-
-    // Unresolved conflict for symbol sequence:
-    // 'compile'  'if'  '('  '('  type_identifier  •  ')'  …
-
-    // Possible interpretations:
-    // 1:  'compile'  'if'  '('  '('  (casting_type  type_identifier)  •  ')'  …
-    // 2:  'compile'  'if'  '('  '('  (enum_type  type_identifier)  •  ')'  …
-
-    // Possible resolutions:
-    // 1:  Specify a higher precedence in `casting_type` than in the other rules.
-    // 2:  Specify a higher precedence in `enum_type` than in the other rules.
-    // 3:  Add a conflict for these rules: `casting_type`, `enum_type`
-    // [$.component_body_item, $.type_identifier_elem],
 
     // Unresolved conflict for symbol sequence:
     // 'compile'  'if'  '('  '('  type_identifier  •  ')'  …
@@ -2046,6 +2057,16 @@ module.exports = grammar({
     // 3:  Add a conflict for these rules: `activity_action_traversal_stmt`, `monitor_activity_monitor_traversal_stmt`
     [$.activity_action_traversal_stmt, $.monitor_activity_monitor_traversal_stmt],
 
+    // 'function'  function_prototype  '{'  'if'  '('  expression  ')'  'if'  '('  expression  ')'  procedural_stmt  •  'else'  …
+    // Unresolved conflict for symbol sequence:
+    //
+    // Possible interpretations:
+    // 1:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_if_else_stmt  'if'  '('  expression  ')'  procedural_stmt  •  'else'  procedural_stmt)
+    // 2:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_if_else_stmt  'if'  '('  expression  ')'  procedural_stmt)  •  'else'  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a left or right associativity in `procedural_if_else_stmt`
+    // 2:  Add a conflict for these rules: `procedural_if_else_stmt`
     [$.procedural_if_else_stmt],
 
     // Unresolved conflict for symbol sequence:
@@ -2075,19 +2096,6 @@ module.exports = grammar({
     [$.data_type, $.enum_type],
 
     // Unresolved conflict for symbol sequence:
-    // 'const'  integer_atom_type  '['  expression  'in'  '['  expression  •  ','  …
-    //
-    // Possible interpretations:
-    // 1:  'const'  integer_atom_type  '['  expression  'in'  '['  (domain_open_range_value  expression)  •  ','  …
-    // 2:  'const'  integer_atom_type  '['  expression  'in'  '['  (open_range_value  expression)  •  ','  …
-    //
-    // Possible resolutions:
-    // 1:  Specify a higher precedence in `domain_open_range_value` than in the other rules.
-    // 2:  Specify a higher precedence in `open_range_value` than in the other rules.
-    // 3:  Add a conflict for these rules: `domain_open_range_value`, `open_range_value`
-    [$.domain_open_range_value, $.open_range_value],
-
-    // Unresolved conflict for symbol sequence:
     // package_declaration  •  'package'  …
     //
     // Possible interpretations:
@@ -2100,8 +2108,30 @@ module.exports = grammar({
     // 3:  Add a conflict for these rules: `portable_stimulus_description`, `package_body_item`
     [$.portable_stimulus_description, $.package_body_item],
 
-    // [$.procedural_if_else_stmt],
-    // [$.procedural_compile_if],
+    // Unresolved conflict for symbol sequence:
+    // 'import'  id  '<'  id  •  ','  …
+    //
+    // Possible interpretations:
+    // 1:  'import'  id  '<'  (member_path_elem  id)  •  ','  …
+    // 2:  'import'  id  '<'  (type_identifier_elem  id)  •  ','  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a higher precedence in `member_path_elem` than in the other rules.
+    // 2:  Specify a higher precedence in `type_identifier_elem` than in the other rules.
+    // 3:  Add a conflict for these rules: `member_path_elem`, `type_identifier_elem`
+    [$.member_path_elem, $.type_identifier_elem],
+
+    // Unresolved conflict for symbol sequence:
+    // 'import'  id  '<'  id  •  '['  …
+    //
+    // Possible interpretations:
+    // 1:  'import'  id  '<'  (member_path_elem  id  •  member_path_elem_repeat1)
+    // 2:  'import'  id  '<'  (member_path_elem  id)  •  '['  …
+    //
+    // Possible resolutions:
+    // 1:  Specify a left or right associativity in `member_path_elem`
+    // 2:  Add a conflict for these rules: `member_path_elem`
+    [$.member_path_elem],
   ],
 });
 

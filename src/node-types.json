@@ -2,6 +2,21 @@
   {
     "type": "QUOTED_STRING",
     "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "QUOTED_STRING_ITEM",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "QUOTED_STRING_ITEM",
+    "named": true,
     "fields": {}
   },
   {
@@ -11,6 +26,21 @@
   },
   {
     "type": "TRIPLE_QUOTED_STRING",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "TRIPLE_QUOTED_STRING_ITEM",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "TRIPLE_QUOTED_STRING_ITEM",
     "named": true,
     "fields": {}
   },
@@ -1014,7 +1044,7 @@
           "named": true
         },
         {
-          "type": "exec_block",
+          "type": "exec_block_stmt",
           "named": true
         },
         {
@@ -1050,7 +1080,7 @@
           "named": true
         },
         {
-          "type": "procedural_function",
+          "type": "procedural_function_task",
           "named": true
         },
         {
@@ -1058,7 +1088,7 @@
           "named": true
         },
         {
-          "type": "target_template_function",
+          "type": "target_template_function_task",
           "named": true
         },
         {
@@ -2064,6 +2094,10 @@
           "named": true
         },
         {
+          "type": "logic_operator",
+          "named": true
+        },
+        {
           "type": "primary",
           "named": true
         },
@@ -2292,10 +2326,6 @@
       "types": [
         {
           "type": "function_parameter",
-          "named": true
-        },
-        {
-          "type": "varargs_parameter",
           "named": true
         }
       ]
@@ -3604,7 +3634,7 @@
           "named": true
         },
         {
-          "type": "procedural_function",
+          "type": "procedural_function_task",
           "named": true
         },
         {
@@ -3612,7 +3642,7 @@
           "named": true
         },
         {
-          "type": "target_template_function",
+          "type": "target_template_function_task",
           "named": true
         },
         {
@@ -3949,6 +3979,21 @@
         },
         {
           "type": "procedural_stmt",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "procedural_function_task",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "procedural_function",
           "named": true
         }
       ]
@@ -4676,6 +4721,21 @@
     }
   },
   {
+    "type": "target_template_function_task",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "target_template_function",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "template_param_decl",
     "named": true,
     "fields": {},
@@ -4886,29 +4946,6 @@
       "types": [
         {
           "type": "expression",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "varargs_parameter",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "data_type",
-          "named": true
-        },
-        {
-          "type": "id",
-          "named": true
-        },
-        {
-          "type": "type_category",
           "named": true
         }
       ]
@@ -5339,6 +5376,10 @@
     "named": false
   },
   {
+    "type": "logic_operator",
+    "named": true
+  },
+  {
     "type": "map",
     "named": false
   },
@@ -5444,6 +5485,10 @@
   },
   {
     "type": "set",
+    "named": false
+  },
+  {
+    "type": "soft",
     "named": false
   },
   {
