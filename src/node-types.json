@@ -2167,6 +2167,10 @@
       "required": true,
       "types": [
         {
+          "type": "function_parameter_dir",
+          "named": true
+        },
+        {
           "type": "object_ref_field",
           "named": true
         },
@@ -4286,11 +4290,20 @@
           "named": true
         },
         {
+          "type": "resource_ref_field_type",
+          "named": true
+        },
+        {
           "type": "type_identifier",
           "named": true
         }
       ]
     }
+  },
+  {
+    "type": "resource_ref_field_type",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "scalar_data_type",
@@ -5376,6 +5389,10 @@
     "named": false
   },
   {
+    "type": "lock",
+    "named": false
+  },
+  {
     "type": "logic_operator",
     "named": true
   },
@@ -5485,6 +5502,10 @@
   },
   {
     "type": "set",
+    "named": false
+  },
+  {
+    "type": "share",
     "named": false
   },
   {

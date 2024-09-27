@@ -650,8 +650,8 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "PATTERN",
-          "value": "(input|output)"
+          "type": "SYMBOL",
+          "name": "function_parameter_dir"
         },
         {
           "type": "SYMBOL",
@@ -699,8 +699,8 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "PATTERN",
-          "value": "(lock|share)"
+          "type": "SYMBOL",
+          "name": "resource_ref_field_type"
         },
         {
           "type": "SYMBOL",
@@ -741,6 +741,19 @@
         {
           "type": "STRING",
           "value": ";"
+        }
+      ]
+    },
+    "resource_ref_field_type": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "lock"
+        },
+        {
+          "type": "STRING",
+          "value": "share"
         }
       ]
     },
@@ -1143,6 +1156,10 @@
           {
             "type": "STRING",
             "value": "post_solve"
+          },
+          {
+            "type": "STRING",
+            "value": "pre_body"
           },
           {
             "type": "STRING",

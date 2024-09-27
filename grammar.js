@@ -147,7 +147,7 @@ const rules = {
   ),
 
   flow_ref_field_declaration: $ => seq(
-    /(input|output)/,
+    $.function_parameter_dir,
     $.type_identifier, // flow_object_type,
     $.object_ref_field,
     repseq(',', $.object_ref_field),
@@ -155,11 +155,16 @@ const rules = {
   ),
 
   resource_ref_field_declaration: $ => seq(
-    /(lock|share)/,
+    $.resource_ref_field_type,
     $.type_identifier, // resource_type_identifier, // resource_object_type,
     $.object_ref_field,
     repseq(',', $.object_ref_field),
     ';'
+  ),
+
+  resource_ref_field_type: $=> choice(
+    "lock",
+    "share"
   ),
 
   // confirmed: these xx_type_identifier are all set to type_identifier at last
@@ -258,6 +263,7 @@ const rules = {
   exec_kind: $ => token(choice(
     'pre_solve',
     'post_solve',
+    'pre_body',
     'body',
     'header',
     'declaration',
