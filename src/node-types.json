@@ -4759,6 +4759,10 @@
         {
           "type": "type_param_decl",
           "named": true
+        },
+        {
+          "type": "value_param_decl",
+          "named": true
         }
       ]
     }
@@ -4959,6 +4963,29 @@
       "types": [
         {
           "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "value_param_decl",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "data_type",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "id",
           "named": true
         }
       ]

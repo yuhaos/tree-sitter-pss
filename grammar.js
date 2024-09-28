@@ -1144,7 +1144,7 @@ const rules = {
 
   template_param_decl: $ => choice(
     $.type_param_decl,
-    // $.value_param_decl
+    $.value_param_decl
   ),
 
   type_param_decl: $ => choice(

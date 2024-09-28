@@ -5563,6 +5563,10 @@
         {
           "type": "SYMBOL",
           "name": "type_param_decl"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "value_param_decl"
         }
       ]
     },
