@@ -10023,8 +10023,8 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "\""
+          "type": "SYMBOL",
+          "name": "QUOTED_STRING_FLAG"
         },
         {
           "type": "CHOICE",
@@ -10039,10 +10039,14 @@
           ]
         },
         {
-          "type": "STRING",
-          "value": "\""
+          "type": "SYMBOL",
+          "name": "QUOTED_STRING_FLAG"
         }
       ]
+    },
+    "QUOTED_STRING_FLAG": {
+      "type": "STRING",
+      "value": "\""
     },
     "QUOTED_STRING_ITEM": {
       "type": "SEQ",
@@ -10084,8 +10088,8 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "\"\"\""
+          "type": "SYMBOL",
+          "name": "TRIPLE_QUOTED_STRING_FLAG"
         },
         {
           "type": "CHOICE",
@@ -10100,10 +10104,14 @@
           ]
         },
         {
-          "type": "STRING",
-          "value": "\"\"\""
+          "type": "SYMBOL",
+          "name": "TRIPLE_QUOTED_STRING_FLAG"
         }
       ]
+    },
+    "TRIPLE_QUOTED_STRING_FLAG": {
+      "type": "STRING",
+      "value": "\"\"\""
     },
     "TRIPLE_QUOTED_STRING_ITEM": {
       "type": "SEQ",

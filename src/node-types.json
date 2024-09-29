@@ -4,9 +4,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
-      "required": false,
+      "multiple": true,
+      "required": true,
       "types": [
+        {
+          "type": "QUOTED_STRING_FLAG",
+          "named": true
+        },
         {
           "type": "QUOTED_STRING_ITEM",
           "named": true
@@ -29,9 +33,13 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
-      "required": false,
+      "multiple": true,
+      "required": true,
       "types": [
+        {
+          "type": "TRIPLE_QUOTED_STRING_FLAG",
+          "named": true
+        },
         {
           "type": "TRIPLE_QUOTED_STRING_ITEM",
           "named": true
@@ -4996,14 +5004,6 @@
     "named": false
   },
   {
-    "type": "\"",
-    "named": false
-  },
-  {
-    "type": "\"\"\"",
-    "named": false
-  },
-  {
     "type": "%",
     "named": false
   },
@@ -5142,6 +5142,14 @@
   {
     "type": "?",
     "named": false
+  },
+  {
+    "type": "QUOTED_STRING_FLAG",
+    "named": true
+  },
+  {
+    "type": "TRIPLE_QUOTED_STRING_FLAG",
+    "named": true
   },
   {
     "type": "[",

@@ -1841,10 +1841,12 @@ const rules = {
   ),
 
   QUOTED_STRING: $ => seq(
-    '"',
+    $.QUOTED_STRING_FLAG,
     optional($.QUOTED_STRING_ITEM),
-    '"'
+    $.QUOTED_STRING_FLAG
   ),
+
+  QUOTED_STRING_FLAG: $ => '"',
 
   QUOTED_STRING_ITEM: $ => seq(
     repeat1(choice(
@@ -1854,10 +1856,12 @@ const rules = {
   ),
 
   TRIPLE_QUOTED_STRING: $ => seq(
-    '"""',
+    $.TRIPLE_QUOTED_STRING_FLAG,
     optional($.TRIPLE_QUOTED_STRING_ITEM),
-    '"""'
+    $.TRIPLE_QUOTED_STRING_FLAG
   ),
+
+  TRIPLE_QUOTED_STRING_FLAG: $ => '"""',
 
   TRIPLE_QUOTED_STRING_ITEM: $ => seq(
     repeat1(choice(
