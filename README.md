@@ -5,7 +5,7 @@ PSS grammar for tree-sitter
 * uncomment some syntax items
 * add conflict processing
 * add the support for triple quoted string
-* fix the ERROR in the internal pss testing. I don't check the update against PSS LRM, so there might be some misleadings.
+* fix the ERROR in the internal pss testing. I did't check the update against PSS LRM, there might be some misleadings.
 
 ### NVIM usage
 The queries for NIVM is add in queries director inside repository: yuhaos/nvim.config
