@@ -535,6 +535,7 @@ const rules = {
   procedural_if_else_stmt: $ => // prec.left(2,
     seq(
       'if', '(', $.expression, ')', $.procedural_stmt,
+      optseq('else', 'if', '(', $.expression, ')', $.procedural_stmt),
       optseq('else', $.procedural_stmt)
     // )
   ),
@@ -805,7 +806,9 @@ const rules = {
   ),
 
   activity_if_else_stmt: $ => prec.left(seq(
-    'if', '(', $.expression, ')', $.activity_stmt, optseq('else', $.activity_stmt)
+    'if', '(', $.expression, ')', $.activity_stmt,
+    optseq('else', 'if', '(', $.expression, ')', $.activity_stmt),
+    optseq('else', $.activity_stmt)
   )),
 
   activity_match_stmt: $ => seq(
@@ -1388,7 +1391,9 @@ const rules = {
   ),
 
   if_constraint_item: $ => prec.left(seq(
-    'if', '(', $.expression, ')', $.constraint_set, optseq('else', $.constraint_set)
+    'if', '(', $.expression, ')', $.constraint_set,
+    optseq('else', 'if', '(', $.expression, ')', $.constraint_set),
+    optseq('else', $.constraint_set)
   )),
 
   implication_constraint_item: $ => seq($.expression, '->', $.constraint_set),
@@ -1577,8 +1582,9 @@ const rules = {
   // Possible resolutions:
   // 1:  Specify a left or right associativity in `procedural_compile_if`
   // 2:  Add a conflict for these rules: `procedural_compile_if`
-  procedural_compile_if:           $ => prec.left(2,
-    seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.procedural_compile_if_stmt,      optseq('else', $.procedural_compile_if_stmt))
+  procedural_compile_if:           $ => prec.left(2, seq(
+    'compile', 'if', '(', $.expression, /* constant_expression */ ')', $.procedural_compile_if_stmt,
+    optseq('else', $.procedural_compile_if_stmt))
   ),
   // Unresolved conflict for symbol sequence:
   // struct_kind  id  '{'  'constraint'  'if'  '('  expression  ')'  'compile'  'if'  '('  expression  ')'  constraint_body_compile_if_item  •  'else'  …
@@ -1590,9 +1596,18 @@ const rules = {
   // Possible resolutions:
   // 1:  Specify a left or right associativity in `constraint_body_compile_if`
   // 2:  Add a conflict for these rules: `constraint_body_compile_if`
-  constraint_body_compile_if:      $ => prec.left(2, seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.constraint_body_compile_if_item, optseq('else', $.constraint_body_compile_if_item))),
-  covergroup_body_compile_if:      $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.covergroup_body_compile_if_item, optseq('else', $.covergroup_body_compile_if_item)),
-  override_compile_if:             $ => seq('compile', 'if', '(', $.expression, /* constant_expression */ ')', $.override_compile_if_stmt,        optseq('else', $.override_compile_if_stmt)),
+  constraint_body_compile_if:      $ => prec.left(2, seq(
+    'compile', 'if', '(', $.expression, /* constant_expression */ ')', $.constraint_body_compile_if_item,
+    optseq('else', $.constraint_body_compile_if_item)
+  )),
+  covergroup_body_compile_if:      $ => seq(
+    'compile', 'if', '(', $.expression, /* constant_expression */ ')', $.covergroup_body_compile_if_item,
+    optseq('else', $.covergroup_body_compile_if_item)
+  ),
+  override_compile_if:             $ => seq(
+    'compile', 'if', '(', $.expression, /* constant_expression */ ')', $.override_compile_if_stmt,
+    optseq('else', $.override_compile_if_stmt)
+  ),
   package_body_compile_if_item:    $ => seq('{', repeat($.package_body_item),    '}'),
   action_body_compile_if_item:     $ => seq('{', repeat($.action_body_item),     '}'),
   monitor_body_compile_if_item:    $ => seq('{', repeat($.monitor_body_item),    '}'),
@@ -2142,6 +2157,34 @@ module.exports = grammar({
     // 1:  Specify a left or right associativity in `member_path_elem`
     // 2:  Add a conflict for these rules: `member_path_elem`
     [$.member_path_elem],
+
+    // Unresolved conflict for symbol sequence:
+    //
+    //   struct_kind  id  '{'  'constraint'  'if'  '('  expression  ')'  constraint_set  'else'  'if'  '('  expression  ')'  constraint_set  •  '}'  …
+    //
+    // Possible interpretations:
+    //
+    //   1:  struct_kind  id  '{'  'constraint'  'if'  '('  expression  ')'  constraint_set  'else'  (if_constraint_item  'if'  '('  expression  ')'  constraint_set)  •  '}'  …  (precedence: 0, associativity: Left)
+    //   2:  struct_kind  id  '{'  'constraint'  (if_constraint_item  'if'  '('  expression  ')'  constraint_set  'else'  'if'  '('  expression  ')'  constraint_set)  •  '}'  …  (precedence: 0, associativity: Left)
+    //
+    // Possible resolutions:
+    //
+    //   1:  Add a conflict for these rules: `if_constraint_item`
+    [$.if_constraint_item],
+
+    // Unresolved conflict for symbol sequence:
+    //
+    //   'extend'  'action'  type_identifier  '{'  'activity'  '{'  'if'  '('  expression  ')'  activity_stmt  'else'  'if'  '('  expression  ')'  activity_stmt  •  '{'  …
+    //
+    // Possible interpretations:
+    //
+    //   1:  'extend'  'action'  type_identifier  '{'  'activity'  '{'  'if'  '('  expression  ')'  activity_stmt  'else'  (activity_if_else_stmt  'if'  '('  expression  ')'  activity_stmt)  •  '{'  …  (precedence: 0, associativity: Left)
+    //   2:  'extend'  'action'  type_identifier  '{'  'activity'  '{'  (activity_if_else_stmt  'if'  '('  expression  ')'  activity_stmt  'else'  'if'  '('  expression  ')'  activity_stmt)  •  '{'  …  (precedence: 0, associativity: Left)
+    //
+    // Possible resolutions:
+    //
+    //   1:  Add a conflict for these rules: `activity_if_else_stmt`
+    [$.activity_if_else_stmt],
   ],
 });
 
