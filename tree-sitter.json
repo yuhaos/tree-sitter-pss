@@ -1,0 +1,33 @@
+{
+  "grammars": [
+    {
+      "name": "pss",
+      "camelcase": "Pss",
+      "scope": "source.pss",
+      "path": ".",
+      "file-types": null,
+      "injection-regex": "^pss$"
+    }
+  ],
+  "metadata": {
+    "version": "0.2.0",
+    "license": "MIT",
+    "description": "PSS grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "Aliaksei Chapyzhenka"
+      }
+    ],
+    "links": {
+      "repository": "git+https://github.com/drom/tree-sitter-pss.git"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}

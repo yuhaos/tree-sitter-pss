@@ -434,6 +434,7 @@ const rules = {
   // B.7 Procedural statements
 
   procedural_stmt: $ => choice(
+    $.procedural_default_sequence_block_stmt,
     $.procedural_sequence_block_stmt,
     $.procedural_data_declaration,
     $.procedural_assignment_stmt,
@@ -451,8 +452,13 @@ const rules = {
     ';'
   ),
 
+  procedural_default_sequence_block_stmt: $ => seq(
+    '{', repeat($.procedural_stmt), '}'
+  ),
+
+
   procedural_sequence_block_stmt: $ => seq(
-    optional('sequence'),
+    'sequence',
     '{', repeat($.procedural_stmt), '}'
   ),
 
@@ -522,20 +528,10 @@ const rules = {
     $.procedural_stmt
   ),
 
-  // Unresolved conflict for symbol sequence:
-  // 'function'  function_prototype  '{'  'if'  '('  expression  ')'  'if'  '('  expression  ')'  procedural_stmt  •  'else'  …
-
-  // Possible interpretations:
-  // 1:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_if_else_stmt  'if'  '('  expression  ')'  procedural_stmt  •  'else'  procedural_stmt)
-  // 2:  'function'  function_prototype  '{'  'if'  '('  expression  ')'  (procedural_if_else_stmt  'if'  '('  expression  ')'  procedural_stmt)  •  'else'  …
-
-  // Possible resolutions:
-  // 1:  Specify a left or right associativity in `procedural_if_else_stmt`
-  // 2:  Add a conflict for these rules: `procedural_if_else_stmt`
   procedural_if_else_stmt: $ => // prec.left(2,
     seq(
       'if', '(', $.expression, ')', $.procedural_stmt,
-      optseq('else', 'if', '(', $.expression, ')', $.procedural_stmt),
+      repseq('else', 'if', '(', $.expression, ')', $.procedural_stmt),
       optseq('else', $.procedural_stmt)
     // )
   ),
@@ -609,6 +605,8 @@ const rules = {
     $.compile_assert_stmt,
     $.attr_group,
     $.component_body_compile_if,
+    $.monitor_declaration,
+    $.cover_stmt,
     $.SNPS_SHADOWED,
     ';' // stmt_terminator
   ),
@@ -692,6 +690,7 @@ const rules = {
   ),
 
   labeled_activity_stmt: $ => choice(
+    $.activity_default_sequence_block_stmt,
     $.activity_sequence_block_stmt,
     $.activity_parallel_stmt,
     $.activity_schedule_stmt,
@@ -724,8 +723,12 @@ const rules = {
 
   // inline_constraints_or_empty: $ => ';',
 
+  activity_default_sequence_block_stmt: $ => seq(
+    '{', repeat($.activity_stmt), '}'
+  ),
+
   activity_sequence_block_stmt: $ => seq(
-    optional('sequence'), '{', repeat($.activity_stmt), '}'
+    'sequence', '{', repeat($.activity_stmt), '}'
   ),
 
   activity_parallel_stmt: $ => seq(
@@ -805,11 +808,13 @@ const rules = {
     $.activity_stmt
   ),
 
-  activity_if_else_stmt: $ => prec.left(seq(
+  activity_if_else_stmt: $ => // prec.left(
+  seq(
     'if', '(', $.expression, ')', $.activity_stmt,
-    optseq('else', 'if', '(', $.expression, ')', $.activity_stmt),
+    repseq('else', 'if', '(', $.expression, ')', $.activity_stmt),
     optseq('else', $.activity_stmt)
-  )),
+  // )
+),
 
   activity_match_stmt: $ => seq(
     'match', '(',
@@ -1008,10 +1013,12 @@ const rules = {
   ),
 
   labeled_monitor_activity_stmt: $ => choice(
+    $.monitor_default_activity_sequence_block_stmt,
     $.monitor_activity_sequence_block_stmt,
     $.monitor_activity_concat_stmt,
     $.monitor_activity_eventually_stmt,
     $.monitor_activity_overlap_stmt,
+    $.monitor_activity_select_stmt,
     $.monitor_activity_schedule_stmt
   ),
 
@@ -1054,8 +1061,12 @@ const rules = {
     )
   ),
 
+  monitor_default_activity_sequence_block_stmt: $ => seq(
+    '{', repeat($.monitor_activity_stmt), '}'
+  ),
+
   monitor_activity_sequence_block_stmt: $ => seq(
-    optional('sequence'), '{', repeat($.monitor_activity_stmt), '}'
+    'sequence', '{', repeat($.monitor_activity_stmt), '}'
   ),
 
   monitor_activity_concat_stmt: $ => seq(
@@ -1214,6 +1225,7 @@ const rules = {
   scalar_data_type: $ => choice(
     $.chandle_type,
     $.integer_type,
+    $.float_type,
     $.string_type,
     $.bool_type,
     $.enum_type
@@ -1221,6 +1233,7 @@ const rules = {
 
   casting_type: $ => choice(
     $.integer_type,
+    $.float_type,
     $.bool_type,
     $.enum_type,
     $.type_identifier

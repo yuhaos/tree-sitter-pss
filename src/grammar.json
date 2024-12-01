@@ -1,4 +1,5 @@
 {
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/grammar.schema.json",
   "name": "pss",
   "word": "id",
   "rules": {
@@ -2062,6 +2063,10 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "procedural_default_sequence_block_stmt"
+        },
+        {
+          "type": "SYMBOL",
           "name": "procedural_sequence_block_stmt"
         },
         {
@@ -2122,20 +2127,32 @@
         }
       ]
     },
+    "procedural_default_sequence_block_stmt": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "procedural_stmt"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
     "procedural_sequence_block_stmt": {
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "sequence"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "STRING",
+          "value": "sequence"
         },
         {
           "type": "STRING",
@@ -2561,36 +2578,39 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "PREC_LEFT",
-              "value": 0,
+              "type": "REPEAT",
               "content": {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "STRING",
-                    "value": "else"
-                  },
-                  {
-                    "type": "STRING",
-                    "value": "if"
-                  },
-                  {
-                    "type": "STRING",
-                    "value": "("
-                  },
-                  {
-                    "type": "SYMBOL",
-                    "name": "expression"
-                  },
-                  {
-                    "type": "STRING",
-                    "value": ")"
-                  },
-                  {
-                    "type": "SYMBOL",
-                    "name": "procedural_stmt"
-                  }
-                ]
+                "type": "PREC_LEFT",
+                "value": 0,
+                "content": {
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": "else"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "if"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "("
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "expression"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": ")"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "procedural_stmt"
+                    }
+                  ]
+                }
               }
             },
             {
@@ -2979,6 +2999,14 @@
         },
         {
           "type": "SYMBOL",
+          "name": "monitor_declaration"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "cover_stmt"
+        },
+        {
+          "type": "SYMBOL",
           "name": "SNPS_SHADOWED"
         },
         {
@@ -3360,6 +3388,10 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "activity_default_sequence_block_stmt"
+        },
+        {
+          "type": "SYMBOL",
           "name": "activity_sequence_block_stmt"
         },
         {
@@ -3501,20 +3533,32 @@
         }
       ]
     },
+    "activity_default_sequence_block_stmt": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "activity_stmt"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
     "activity_sequence_block_stmt": {
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "sequence"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "STRING",
+          "value": "sequence"
         },
         {
           "type": "STRING",
@@ -4012,35 +4056,34 @@
       ]
     },
     "activity_if_else_stmt": {
-      "type": "PREC_LEFT",
-      "value": 0,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "STRING",
-            "value": "if"
-          },
-          {
-            "type": "STRING",
-            "value": "("
-          },
-          {
-            "type": "SYMBOL",
-            "name": "expression"
-          },
-          {
-            "type": "STRING",
-            "value": ")"
-          },
-          {
-            "type": "SYMBOL",
-            "name": "activity_stmt"
-          },
-          {
-            "type": "CHOICE",
-            "members": [
-              {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "if"
+        },
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "SYMBOL",
+          "name": "expression"
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "activity_stmt"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "REPEAT",
+              "content": {
                 "type": "PREC_LEFT",
                 "value": 0,
                 "content": {
@@ -4072,39 +4115,39 @@
                     }
                   ]
                 }
-              },
-              {
-                "type": "BLANK"
               }
-            ]
-          },
-          {
-            "type": "CHOICE",
-            "members": [
-              {
-                "type": "PREC_LEFT",
-                "value": 0,
-                "content": {
-                  "type": "SEQ",
-                  "members": [
-                    {
-                      "type": "STRING",
-                      "value": "else"
-                    },
-                    {
-                      "type": "SYMBOL",
-                      "name": "activity_stmt"
-                    }
-                  ]
-                }
-              },
-              {
-                "type": "BLANK"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "PREC_LEFT",
+              "value": 0,
+              "content": {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "else"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "activity_stmt"
+                  }
+                ]
               }
-            ]
-          }
-        ]
-      }
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
     },
     "activity_match_stmt": {
       "type": "SEQ",
@@ -5096,6 +5139,10 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "monitor_default_activity_sequence_block_stmt"
+        },
+        {
+          "type": "SYMBOL",
           "name": "monitor_activity_sequence_block_stmt"
         },
         {
@@ -5109,6 +5156,10 @@
         {
           "type": "SYMBOL",
           "name": "monitor_activity_overlap_stmt"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "monitor_activity_select_stmt"
         },
         {
           "type": "SYMBOL",
@@ -5216,20 +5267,32 @@
         }
       ]
     },
+    "monitor_default_activity_sequence_block_stmt": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "monitor_activity_stmt"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
     "monitor_activity_sequence_block_stmt": {
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "sequence"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
+          "type": "STRING",
+          "value": "sequence"
         },
         {
           "type": "STRING",
@@ -5934,6 +5997,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "float_type"
+        },
+        {
+          "type": "SYMBOL",
           "name": "string_type"
         },
         {
@@ -5952,6 +6019,10 @@
         {
           "type": "SYMBOL",
           "name": "integer_type"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "float_type"
         },
         {
           "type": "SYMBOL",

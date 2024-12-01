@@ -417,6 +417,21 @@
     }
   },
   {
+    "type": "activity_default_sequence_block_stmt",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "activity_stmt",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "activity_foreach_stmt",
     "named": true,
     "fields": {},
@@ -879,6 +894,10 @@
           "named": true
         },
         {
+          "type": "float_type",
+          "named": true
+        },
+        {
           "type": "integer_type",
           "named": true
         },
@@ -1044,6 +1063,10 @@
           "named": true
         },
         {
+          "type": "cover_stmt",
+          "named": true
+        },
+        {
           "type": "covergroup_declaration",
           "named": true
         },
@@ -1077,6 +1100,10 @@
         },
         {
           "type": "import_stmt",
+          "named": true
+        },
+        {
+          "type": "monitor_declaration",
           "named": true
         },
         {
@@ -1380,6 +1407,29 @@
         },
         {
           "type": "constraint_body_item",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "cover_stmt",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "id",
+          "named": true
+        },
+        {
+          "type": "monitor_body_item",
+          "named": true
+        },
+        {
+          "type": "type_identifier",
           "named": true
         }
       ]
@@ -2167,6 +2217,11 @@
     }
   },
   {
+    "type": "float_type",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "flow_ref_field_declaration",
     "named": true,
     "fields": {},
@@ -2699,6 +2754,10 @@
           "named": true
         },
         {
+          "type": "activity_default_sequence_block_stmt",
+          "named": true
+        },
+        {
           "type": "activity_foreach_stmt",
           "named": true
         },
@@ -2770,7 +2829,15 @@
           "named": true
         },
         {
+          "type": "monitor_activity_select_stmt",
+          "named": true
+        },
+        {
           "type": "monitor_activity_sequence_block_stmt",
+          "named": true
+        },
+        {
+          "type": "monitor_default_activity_sequence_block_stmt",
           "named": true
         }
       ]
@@ -2957,6 +3024,21 @@
     "children": {
       "multiple": true,
       "required": false,
+      "types": [
+        {
+          "type": "monitor_activity_stmt",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "monitor_activity_select_stmt",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
       "types": [
         {
           "type": "monitor_activity_stmt",
@@ -3218,6 +3300,21 @@
         },
         {
           "type": "template_param_decl_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "monitor_default_activity_sequence_block_stmt",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "monitor_activity_stmt",
           "named": true
         }
       ]
@@ -3951,6 +4048,21 @@
     }
   },
   {
+    "type": "procedural_default_sequence_block_stmt",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "procedural_stmt",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "procedural_foreach_stmt",
     "named": true,
     "fields": {},
@@ -4189,6 +4301,10 @@
           "named": true
         },
         {
+          "type": "procedural_default_sequence_block_stmt",
+          "named": true
+        },
+        {
           "type": "procedural_foreach_stmt",
           "named": true
         },
@@ -4334,6 +4450,10 @@
           "named": true
         },
         {
+          "type": "float_type",
+          "named": true
+        },
+        {
           "type": "integer_type",
           "named": true
         },
@@ -4366,6 +4486,7 @@
   {
     "type": "source_file",
     "named": true,
+    "root": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -5065,10 +5186,6 @@
   },
   {
     "type": "..",
-    "named": false
-  },
-  {
-    "type": "...",
     "named": false
   },
   {
